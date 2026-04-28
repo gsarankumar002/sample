@@ -14,161 +14,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Work Freaks | Professional Interview Portal</title>
+    <title>Work Freaks | Cloud Interview Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        #video, #canvas { border-radius: 12px; width: 100%; max-width: 320px; margin: 0 auto; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
-    </style>
-</head>
-<body class="bg-slate-50 min-h-screen font-sans text-slate-900">
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    <nav class="bg-indigo-700 p-4 text-white shadow-lg flex justify-between items-center sticky top-0 z-50">
-        <h1 class="font-bold text-xl tracking-tight">Work Freaks Business Service</h1>
-        <div class="flex gap-3">
-            <button onclick="showSection('candidate')" class="text-sm bg-indigo-800 hover:bg-indigo-900 px-4 py-2 rounded-lg transition">Candidate Mode</button>
-            <button onclick="showSection('manager')" class="text-sm bg-white text-indigo-700 px-4 py-2 rounded-lg font-bold hover:bg-indigo-50 transition">Manager Mode</button>
-        </div>
-    </nav>
+        // Firebase Configuration (Replace with your own details from Firebase Console)
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
 
-    <div class="container mx-auto p-4 max-w-6xl">
-        
-        <section id="candidate-section" class="max-w-lg mx-auto mt-8 bg-white p-8 rounded-2xl shadow-xl border border-slate-200">
-            <div class="text-center mb-8">
-                <h2 class="text-3xl font-extrabold text-slate-800">Registration</h2>
-                <p class="text-slate-500 text-sm mt-2">Enter your details to check-in for the interview</p>
-            </div>
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const candidatesCol = collection(db, "candidates");
 
-            <form id="entryForm" class="space-y-5">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="md:col-span-2">
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Full Name</label>
-                        <input type="text" id="name" class="w-full border-2 border-slate-100 p-3 rounded-xl focus:border-indigo-500 outline-none transition bg-slate-50" placeholder="John Doe" required>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Contact Number</label>
-                        <input type="tel" id="phone" class="w-full border-2 border-slate-100 p-3 rounded-xl focus:border-indigo-500 outline-none bg-slate-50" placeholder="9876543210" required>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Date of Birth</label>
-                        <input type="date" id="dob" class="w-full border-2 border-slate-100 p-3 rounded-xl focus:border-indigo-500 outline-none bg-slate-50" required>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Position</label>
-                        <input type="text" id="position" class="w-full border-2 border-slate-100 p-3 rounded-xl focus:border-indigo-500 outline-none bg-slate-50" placeholder="Manager" required>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Native Place</label>
-                        <input type="text" id="native" class="w-full border-2 border-slate-100 p-3 rounded-xl focus:border-indigo-500 outline-none bg-slate-50" placeholder="City Name" required>
-                    </div>
-                </div>
-
-                <div class="bg-indigo-50 p-6 rounded-2xl text-center border-2 border-dashed border-indigo-200">
-                    <video id="video" autoplay playsinline class="hidden border-4 border-white"></video>
-                    <canvas id="canvas" class="hidden border-4 border-white"></canvas>
-                    <div id="camPlaceholder" class="py-6 text-slate-400">
-                        <div class="text-4xl mb-2">📸</div>
-                        <p class="text-sm font-medium">Verification Photo Required</p>
-                    </div>
-                    <div class="mt-4 flex justify-center gap-3">
-                        <button type="button" id="startBtn" onclick="initCamera()" class="bg-indigo-600 text-white px-6 py-2 rounded-full text-sm font-bold hover:bg-indigo-700 transition shadow-md">Open Camera</button>
-                        <button type="button" id="snapBtn" onclick="takePhoto()" class="hidden bg-rose-500 text-white px-6 py-2 rounded-full text-sm font-bold hover:bg-rose-600 transition shadow-md">Capture</button>
-                    </div>
-                </div>
-
-                <button type="submit" class="w-full bg-slate-900 text-white py-4 rounded-xl font-bold text-lg hover:bg-black transition shadow-lg">SUBMIT DETAILS</button>
-            </form>
-        </section>
-
-        <section id="manager-section" class="hidden mt-8">
-            <div id="pinArea" class="max-w-sm mx-auto bg-white p-10 rounded-3xl shadow-2xl text-center border border-slate-100">
-                <h2 class="text-2xl font-black mb-2 text-slate-800">Manager Access</h2>
-                <p class="text-slate-400 text-sm mb-6">Enter PIN to view candidates</p>
-                <input type="password" id="pinInput" placeholder="••••" class="w-full border-b-2 border-slate-200 p-2 mb-8 text-center text-3xl tracking-widest focus:border-indigo-500 outline-none">
-                <button onclick="checkPin()" class="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold hover:bg-indigo-700 transition shadow-md">Login</button>
-            </div>
-
-            <div id="dashboard" class="hidden bg-white rounded-3xl shadow-2xl p-8 border border-slate-100">
-                <div class="flex justify-between items-center mb-8">
-                    <h2 class="text-3xl font-black text-slate-800">Interview Records</h2>
-                    <button onclick="logout()" class="bg-rose-50 text-rose-600 px-4 py-2 rounded-lg text-sm font-bold border border-rose-100 hover:bg-rose-600 hover:text-white transition">Logout</button>
-                </div>
-                
-                <div class="overflow-x-auto rounded-xl border border-slate-50">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider font-bold">
-                                <th class="p-4 border-b">Photo</th>
-                                <th class="p-4 border-b">Candidate Details</th>
-                                <th class="p-4 border-b">Role</th>
-                                <th class="p-4 border-b">Submitted</th>
-                                <th class="p-4 border-b text-center">Status</th>
-                                <th class="p-4 border-b text-center">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tableContent" class="text-sm"></tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-    </div>
-
-    <div id="editModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[100]">
-        <div class="bg-white p-8 rounded-3xl w-full max-w-md shadow-2xl">
-            <h3 class="text-2xl font-black mb-6 border-b pb-4 text-slate-800">Edit Candidate</h3>
-            <input type="hidden" id="editIndex">
-            
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Full Name</label>
-                    <input type="text" id="editName" class="w-full border-2 border-slate-50 p-2 rounded-lg focus:border-indigo-500 outline-none bg-slate-50">
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Phone</label>
-                        <input type="tel" id="editPhone" class="w-full border-2 border-slate-50 p-2 rounded-lg focus:border-indigo-500 outline-none bg-slate-50">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">DOB</label>
-                        <input type="date" id="editDob" class="w-full border-2 border-slate-50 p-2 rounded-lg focus:border-indigo-500 outline-none bg-slate-50">
-                    </div>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Position</label>
-                        <input type="text" id="editPos" class="w-full border-2 border-slate-50 p-2 rounded-lg focus:border-indigo-500 outline-none bg-slate-50">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Native</label>
-                        <input type="text" id="editNative" class="w-full border-2 border-slate-50 p-2 rounded-lg focus:border-indigo-500 outline-none bg-slate-50">
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Status</label>
-                    <select id="editStatus" class="w-full border-2 border-slate-50 p-3 rounded-lg bg-indigo-50 font-bold text-indigo-700 outline-none">
-                        <option value="Pending">Pending</option>
-                        <option value="Selected">Selected</option>
-                        <option value="Rejected">Rejected</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="flex gap-3 mt-8">
-                <button onclick="saveEdit()" class="flex-1 bg-indigo-600 text-white py-3 rounded-xl font-bold shadow-lg hover:bg-indigo-700 transition">Update Record</button>
-                <button onclick="closeModal()" class="flex-1 bg-slate-100 text-slate-500 py-3 rounded-xl font-bold hover:bg-slate-200 transition">Cancel</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
+        // --- Camera Logic ---
         let capturedImageData = "";
-
-        function showSection(id) {
-            document.getElementById('candidate-section').classList.add('hidden');
-            document.getElementById('manager-section').classList.add('hidden');
-            document.getElementById(id + '-section').classList.remove('hidden');
-        }
-
-        async function initCamera() {
+        window.initCamera = async function() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ video: true });
                 const video = document.getElementById('video');
@@ -177,153 +45,136 @@
                 document.getElementById('camPlaceholder').classList.add('hidden');
                 document.getElementById('snapBtn').classList.remove('hidden');
                 document.getElementById('startBtn').classList.add('hidden');
-            } catch (err) {
-                alert("Please enable camera permissions.");
-            }
-        }
+            } catch (err) { alert("Camera Permission Required!"); }
+        };
 
-        function takePhoto() {
+        window.takePhoto = function() {
             const video = document.getElementById('video');
             const canvas = document.getElementById('canvas');
             const snapBtn = document.getElementById('snapBtn');
-
             if (snapBtn.innerText === "Retake") {
-                canvas.classList.add('hidden');
-                video.classList.remove('hidden');
-                snapBtn.innerText = "Capture";
-                capturedImageData = "";
+                canvas.classList.add('hidden'); video.classList.remove('hidden');
+                snapBtn.innerText = "Capture"; capturedImageData = "";
             } else {
                 const context = canvas.getContext('2d');
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
+                canvas.width = video.videoWidth; canvas.height = video.videoHeight;
                 context.drawImage(video, 0, 0, canvas.width, canvas.height);
-                capturedImageData = canvas.toDataURL('image/png');
-                video.classList.add('hidden');
-                canvas.classList.remove('hidden');
+                capturedImageData = canvas.toDataURL('image/webp', 0.5); // Compressed
+                video.classList.add('hidden'); canvas.classList.remove('hidden');
                 snapBtn.innerText = "Retake";
             }
-        }
+        };
 
-        document.getElementById('entryForm').onsubmit = function(e) {
+        // --- Save to Cloud ---
+        document.getElementById('entryForm').onsubmit = async function(e) {
             e.preventDefault();
             if (!capturedImageData) return alert("Photo required!");
-
-            const now = new Date();
-            const timeStamp = now.toLocaleDateString() + ' ' + now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-
-            const entry = {
-                name: document.getElementById('name').value,
-                phone: document.getElementById('phone').value,
-                dob: document.getElementById('dob').value,
-                position: document.getElementById('position').value,
-                native: document.getElementById('native').value,
-                photo: capturedImageData,
-                appliedAt: timeStamp,
-                status: "Pending"
-            };
-
-            const list = JSON.parse(localStorage.getItem('interviews') || '[]');
-            list.push(entry);
-            localStorage.setItem('interviews', JSON.stringify(list));
             
-            alert("Application Submitted!");
-            location.reload();
-        }
+            const btn = e.target.querySelector('button[type="submit"]');
+            btn.innerText = "Saving..."; btn.disabled = true;
 
-        function checkPin() {
+            try {
+                await addDoc(candidatesCol, {
+                    name: document.getElementById('name').value,
+                    phone: document.getElementById('phone').value,
+                    dob: document.getElementById('dob').value,
+                    position: document.getElementById('position').value,
+                    native: document.getElementById('native').value,
+                    photo: capturedImageData,
+                    appliedAt: new Date().toLocaleString(),
+                    status: "Pending"
+                });
+                alert("Data Saved to Cloud!");
+                location.reload();
+            } catch (e) { alert("Error saving data: " + e); }
+        };
+
+        // --- Load Data (Real-time) ---
+        window.loadData = function() {
+            onSnapshot(candidatesCol, (snapshot) => {
+                const table = document.getElementById('tableContent');
+                table.innerHTML = snapshot.docs.map(docSnap => {
+                    const item = docSnap.data();
+                    const id = docSnap.id;
+                    return `
+                        <tr class="border-b hover:bg-slate-50 transition">
+                            <td class="p-4"><img src="${item.photo}" class="w-12 h-12 object-cover rounded-full"></td>
+                            <td class="p-4"><b>${item.name}</b><br><small>${item.phone}</small></td>
+                            <td class="p-4 text-indigo-600">${item.position}</td>
+                            <td class="p-4"><span class="px-2 py-1 rounded-full text-[10px] font-bold ${item.status === 'Selected' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}">${item.status}</span></td>
+                            <td class="p-4">
+                                <button onclick="deleteRecord('${id}')" class="text-red-500 font-bold">Delete</button>
+                            </td>
+                        </tr>`;
+                }).join('');
+            });
+        };
+
+        window.deleteRecord = async function(id) {
+            if(confirm("Delete this candidate?")) {
+                await deleteDoc(doc(db, "candidates", id));
+            }
+        };
+
+        window.checkPin = function() {
             if(document.getElementById('pinInput').value === "1234") {
                 document.getElementById('pinArea').classList.add('hidden');
                 document.getElementById('dashboard').classList.remove('hidden');
                 loadData();
-            } else {
-                alert("Invalid PIN!");
-            }
-        }
+            } else { alert("Wrong PIN!"); }
+        };
 
-        function loadData() {
-            const list = JSON.parse(localStorage.getItem('interviews') || '[]');
-            const table = document.getElementById('tableContent');
-            table.innerHTML = list.map((item, index) => `
-                <tr class="border-b border-slate-50 hover:bg-slate-50 transition">
-                    <td class="p-4"><img src="${item.photo}" class="w-14 h-14 object-cover rounded-full border-2 border-white shadow-sm"></td>
-                    <td class="p-4">
-                        <div class="font-bold text-slate-800">${item.name}</div>
-                        <div class="text-[11px] text-slate-500">${item.phone} • ${item.native}</div>
-                        <div class="text-[11px] text-slate-400 italic">DOB: ${item.dob}</div>
-                    </td>
-                    <td class="p-4 font-semibold text-indigo-600">${item.position}</td>
-                    <td class="p-4 text-slate-400 text-[11px]">${item.appliedAt}</td>
-                    <td class="p-4 text-center">
-                        <span class="px-2 py-1 rounded-full text-[10px] font-black uppercase ${
-                            item.status === 'Selected' ? 'bg-green-100 text-green-700' : 
-                            item.status === 'Rejected' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
-                        }">${item.status}</span>
-                    </td>
-                    <td class="p-4">
-                        <div class="flex justify-center gap-2">
-                            <button onclick="openEdit(${index})" class="p-2 text-blue-600 hover:bg-blue-600 hover:text-white rounded-lg border border-blue-100 transition">
-                                Edit
-                            </button>
-                            <button onclick="deleteRecord(${index})" class="p-2 text-red-600 hover:bg-red-600 hover:text-white rounded-lg border border-red-100 transition">
-                                Delete
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-            `).join('');
-        }
-
-        function openEdit(index) {
-            const list = JSON.parse(localStorage.getItem('interviews'));
-            const item = list[index];
-            document.getElementById('editIndex').value = index;
-            document.getElementById('editName').value = item.name;
-            document.getElementById('editPhone').value = item.phone;
-            document.getElementById('editDob').value = item.dob;
-            document.getElementById('editPos').value = item.position;
-            document.getElementById('editNative').value = item.native;
-            document.getElementById('editStatus').value = item.status;
-            document.getElementById('editModal').classList.remove('hidden');
-        }
-
-        function closeModal() {
-            document.getElementById('editModal').classList.add('hidden');
-        }
-
-        function saveEdit() {
-            const index = document.getElementById('editIndex').value;
-            const list = JSON.parse(localStorage.getItem('interviews'));
-            
-            list[index].name = document.getElementById('editName').value;
-            list[index].phone = document.getElementById('editPhone').value;
-            list[index].dob = document.getElementById('editDob').value;
-            list[index].position = document.getElementById('editPos').value;
-            list[index].native = document.getElementById('editNative').value;
-            list[index].status = document.getElementById('editStatus').value;
-            
-            localStorage.setItem('interviews', JSON.stringify(list));
-            closeModal();
-            loadData();
-        }
-
-        function deleteRecord(index) {
-            const list = JSON.parse(localStorage.getItem('interviews'));
-            if(confirm("Confirm deletion of candidate: " + list[index].name + "?")) {
-                list.splice(index, 1);
-                localStorage.setItem('interviews', JSON.stringify(list));
-                loadData();
-            }
-        }
-
-        function logout() {
-            document.getElementById('pinArea').classList.remove('hidden');
-            document.getElementById('dashboard').classList.add('hidden');
-            document.getElementById('pinInput').value = "";
-        }
+        window.showSection = function(id) {
+            document.getElementById('candidate-section').classList.toggle('hidden', id !== 'candidate');
+            document.getElementById('manager-section').classList.toggle('hidden', id !== 'manager');
+        };
     </script>
+</head>
+<body class="bg-slate-50 min-h-screen">
+    <nav class="bg-indigo-700 p-4 text-white flex justify-between shadow-lg">
+        <h1 class="font-bold">Work Freaks Business</h1>
+        <div class="flex gap-2">
+            <button onclick="showSection('candidate')" class="text-sm bg-indigo-800 px-3 py-1 rounded">Candidate</button>
+            <button onclick="showSection('manager')" class="text-sm bg-white text-indigo-700 px-3 py-1 rounded">Manager</button>
+        </div>
+    </nav>
+
+    <div class="container mx-auto p-4">
+        <section id="candidate-section" class="max-w-md mx-auto bg-white p-6 rounded-xl shadow-md">
+            <form id="entryForm" class="space-y-4">
+                <input type="text" id="name" placeholder="Full Name" class="w-full border p-2 rounded" required>
+                <input type="tel" id="phone" placeholder="Phone" class="w-full border p-2 rounded" required>
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="date" id="dob" class="w-full border p-2 rounded" required>
+                    <input type="text" id="position" placeholder="Position" class="w-full border p-2 rounded" required>
+                </div>
+                <input type="text" id="native" placeholder="Native Place" class="w-full border p-2 rounded" required>
+                
+                <div class="bg-slate-100 p-4 rounded text-center">
+                    <video id="video" autoplay playsinline class="hidden mx-auto rounded mb-2"></video>
+                    <canvas id="canvas" class="hidden mx-auto rounded mb-2"></canvas>
+                    <div id="camPlaceholder">📷 Camera Required</div>
+                    <button type="button" id="startBtn" onclick="initCamera()" class="bg-indigo-500 text-white px-4 py-1 rounded mt-2">Open Camera</button>
+                    <button type="button" id="snapBtn" onclick="takePhoto()" class="hidden bg-rose-500 text-white px-4 py-1 rounded mt-2">Capture</button>
+                </div>
+                <button type="submit" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-bold">SUBMIT TO CLOUD</button>
+            </form>
+        </section>
+
+        <section id="manager-section" class="hidden">
+            <div id="pinArea" class="max-w-sm mx-auto bg-white p-8 rounded-xl shadow text-center">
+                <input type="password" id="pinInput" placeholder="Enter PIN" class="w-full border-b-2 p-2 mb-4 text-center">
+                <button onclick="checkPin()" class="w-full bg-indigo-600 text-white py-2 rounded">Login</button>
+            </div>
+            <div id="dashboard" class="hidden bg-white rounded-xl shadow overflow-hidden">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-100">
+                        <tr><th class="p-4">Photo</th><th class="p-4">Name</th><th class="p-4">Role</th><th class="p-4">Status</th><th class="p-4">Action</th></tr>
+                    </thead>
+                    <tbody id="tableContent"></tbody>
+                </table>
+            </div>
+        </section>
+    </div>
 </body>
-</html>
-</html>
-</body>
-</html>
 </html>
